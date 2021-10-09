@@ -1,5 +1,5 @@
 use std::borrow::{Borrow, Cow};
-use std::io::Read;
+use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::time::Duration;
 use gitlab_telegram::webhook::WebHook;
@@ -19,6 +19,8 @@ fn main() {
         let request = String::from_utf8_lossy(&buffer[..]);
         let json = parse_json(request);
         let webhook:WebHook = serde_json::from_str(json.as_str()).expect("Cannot parse");
+        stream.write("HTTP/1.1 200 OK\r\n\r\n".as_bytes()).unwrap();
+        stream.flush().unwrap();
     }
 }
 
