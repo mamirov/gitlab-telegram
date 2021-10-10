@@ -8,5 +8,5 @@ edition = "2018"
 [dependencies]
 #regex = "1"
 serde = { version = "1.0", features = ["derive"] }
-reqwest = {version = "0.11.5", features = ["blocking"]}
 serde_json = "1.0.68"
+native-tls = "0.2.8"
