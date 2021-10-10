@@ -1,12 +1,26 @@
 use std::borrow::{Borrow, Cow};
+use std::{env, thread};
 use std::io::{Read, Write};
 use std::net::TcpListener;
+use std::thread::Thread;
 use std::time::Duration;
+use gitlab_telegram::telegram_client::TelegramClient;
+use gitlab_telegram::utils::parse_json;
 use gitlab_telegram::webhook::WebHook;
 
 fn main() {
     let listener = TcpListener::bind(format!("{}:{}", "127.0.0.1", 8000)).expect("Couldn't start server");
     let mut incoming = listener.incoming();
+    let telegram_client = TelegramClient {
+        api_key: env::var("BOT_API_KEY").unwrap()
+    };
+    thread::spawn(move || {
+        loop {
+            telegram_client.add_update_listener(|body: String| {
+                println!("{}", body);
+            })
+        }
+    });
     loop {
         let stream = incoming.next().unwrap();
         let mut stream = stream.expect("Stream error");
@@ -22,30 +36,4 @@ fn main() {
         stream.write("HTTP/1.1 200 OK\r\n\r\n".as_bytes()).unwrap();
         stream.flush().unwrap();
     }
-}
-
-fn parse_json(request: Cow<str>) -> String {
-    let mut json: String = String::new();
-    let mut append = false;
-    let mut count = 0;
-    for c in request.chars().into_iter() {
-        if c.to_string().eq("{") {
-            json += &c.to_string();
-            count += 1;
-            append = true;
-            continue
-        }
-        if c.to_string().eq("}") {
-            json += &c.to_string();
-            if count == 1 {
-                append = false;
-            }
-            count -= 1;
-            continue;
-        }
-        if append {
-            json += &c.to_string();
-        }
-    }
-    json
 }
